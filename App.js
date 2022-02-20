@@ -10,15 +10,27 @@ import {
 import { theme } from "./colors";
 
 export default function App() {
-  const [isActive, setIsActive] = useState(false);
+  const [working, setWorking] = useState(true);
+  const travel = () => setWorking(false);
+  const work = () => setWorking(true);
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
       <View style={styles.header}>
-        <TouchableHighlight onPress={() => console.log("pressed")}>
-          <Text style={styles.btnText}>Work</Text>
-        </TouchableHighlight>
-        <Text style={styles.btnText}>Travel</Text>
+        <TouchableOpacity onPress={work}>
+          <Text
+            style={{ ...styles.btnText, color: working ? "#fff" : theme.gray }}
+          >
+            Work
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={travel}>
+          <Text
+            style={{ ...styles.btnText, color: working ? theme.gray : "#fff" }}
+          >
+            Travel
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -31,12 +43,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
+    flex: 1,
     flexDirection: "row",
     marginTop: 100,
-    // justifyContent: "space-between",
+    justifyContent: "space-between",
   },
   btnText: {
-    color: theme.gray,
     flex: 1,
     fontSize: 36,
     fontWeight: "600",
