@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,8 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { theme } from "./colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { FontAwesome5 } from "@expo/vector-icons";
+
+const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -19,14 +24,41 @@ export default function App() {
   const work = () => setWorking(true);
 
   const onChangeText = (event) => setText(event);
-  const addToDo = () => {
+  const saveToDos = async (toSave) => {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  };
+  const loadToDos = async () => {
+    const s = await AsyncStorage.getItem(STORAGE_KEY);
+    setToDos(JSON.parse(s));
+  };
+  useEffect(() => loadToDos(), []);
+
+  const addToDo = async () => {
     if (text === "") {
       return;
     }
-    const newToDos = { ...toDos, [Date.now()]: { text, work: working } };
+    const newToDos = { [Date.now()]: { text, work: working }, ...toDos };
     setToDos(newToDos);
+    await saveToDos(newToDos);
     setText("");
   };
+
+  const deleteToDo = (key) => {
+    Alert.alert("항목을 삭제하시겠습니까?", "", [
+      { text: "취소", style: "destructive" },
+      {
+        text: "확인",
+        onPress: async () => {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          await saveToDos(newToDos);
+        },
+      },
+    ]);
+    return;
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -56,11 +88,22 @@ export default function App() {
           style={styles.input}
         />
         <ScrollView>
-          {Object.keys(toDos).map((key) => (
-            <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-            </View>
-          ))}
+          {toDos &&
+            Object.keys(toDos).map(
+              (key) =>
+                toDos[key].work === working && (
+                  <View style={styles.toDo} key={key}>
+                    <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                    <TouchableOpacity onPress={() => deleteToDo(key)}>
+                      <FontAwesome5
+                        name="trash-alt"
+                        size={18}
+                        color="crimson"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )
+            )}
         </ScrollView>
       </View>
     </View>
@@ -74,7 +117,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    // flex: 1,
     flexDirection: "row",
     marginTop: 100,
     justifyContent: "space-between",
@@ -99,6 +141,9 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     padding: 20,
     borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   toDoText: { color: "#fff", fontSize: 18, fontWeight: "500" },
 });
