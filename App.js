@@ -6,6 +6,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { theme } from "./colors";
 
@@ -22,13 +23,10 @@ export default function App() {
     if (text === "") {
       return;
     }
-    const newToDos = Object.assign({}, toDos, {
-      [Date.now()]: { text, work: working },
-    });
+    const newToDos = { ...toDos, [Date.now()]: { text, work: working } };
     setToDos(newToDos);
     setText("");
   };
-  console.log(toDos);
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -57,6 +55,13 @@ export default function App() {
           placeholder={working ? "오늘 할 일을 입력하세요" : "어디로 떠날까요?"}
           style={styles.input}
         />
+        <ScrollView>
+          {Object.keys(toDos).map((key) => (
+            <View style={styles.toDo} key={key}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+            </View>
+          ))}
+        </ScrollView>
       </View>
     </View>
   );
@@ -83,10 +88,17 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: "#fff",
-    marginTop: 30,
+    marginVertical: 30,
     paddingVertical: 14,
     paddingHorizontal: 30,
     borderRadius: 30,
     fontSize: 20,
   },
+  toDo: {
+    backgroundColor: "#222",
+    marginVertical: 4,
+    padding: 20,
+    borderRadius: 12,
+  },
+  toDoText: { color: "#fff", fontSize: 18, fontWeight: "500" },
 });
